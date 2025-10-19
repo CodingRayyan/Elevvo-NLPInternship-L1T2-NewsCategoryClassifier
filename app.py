@@ -61,10 +61,9 @@ with st.sidebar.expander("🛠️ Tech Stack Used"):
 
 # -------------------- Sidebar: Dataset Info --------------------
 with st.sidebar.expander("🗂️ Trained Dataset Info"):
-    df = pd.read_csv('train.csv')
-    st.markdown(f"- **Total Rows:** `{df.shape[0]}`")
-    st.markdown(f"- **Total Columns:** `{df.shape[1]}`")
-    st.markdown(f"- **Categories:** `{df['Class Index'].nunique()}` unique labels")
+    st.markdown(f"- **Total Rows:** 120000")
+    st.markdown(f"- **Total Columns:** 3")
+    st.markdown(f"- **Categories:** 4 unique labels")
 
 # -------------------- Sidebar: Model Performance --------------------
 with st.sidebar.expander("📈 Model Performance"):
@@ -170,3 +169,4 @@ if st.button("☁️ Generate WordCloud"):
     st.pyplot(fig)
 
     st.success(f"✅ WordCloud generated for {category_labels[selected_category]}")
+
