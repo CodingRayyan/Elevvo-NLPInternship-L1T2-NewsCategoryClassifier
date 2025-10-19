@@ -2,8 +2,16 @@ import streamlit as st
 import joblib
 import pandas as pd
 import re
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+# -------------------- Ensure NLTK Resources --------------------
+nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
+nltk.download('omw-1.4', quiet=True)
 
 # -------------------- Load Model & Vectorizer --------------------
 model = joblib.load('news_category_model.pkl')
@@ -13,7 +21,7 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 st.markdown("""
 <style>
 .stApp {
-    background-image: linear-gradient(rgba(0, 0, 200, 0.4), rgba(0, 0, 200, 0.4)),
+    background-image: linear-gradient(rgba(0, 0, 180, 0.5), rgba(0, 0, 180, 0.5)),
                       url("https://www.shutterstock.com/shutterstock/videos/3822164211/thumb/1.jpg?ip=x480");
     background-size: cover;
     background-position: center;
@@ -21,6 +29,23 @@ st.markdown("""
     color: white;
 }
 h1 { color: #FFD700; text-align: center; }
+
+/* Text area & Button styling */
+textarea {
+    border: 2px solid #002366 !important;
+    border-radius: 10px !important;
+}
+div.stButton > button:first-child {
+    background-color: #002366;
+    color: white;
+    border-radius: 10px;
+    border: 1px solid white;
+    padding: 0.6em 1.2em;
+}
+div.stButton > button:hover {
+    background-color: #003cb3;
+    color: white;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,13 +75,13 @@ with st.sidebar.expander("👨‍💻 Developer's Intro"):
 with st.sidebar.expander("🛠️ Tech Stack Used"):
     st.markdown("""
     - **Python Libraries:** NumPy, Pandas, Matplotlib, Seaborn  
-    - **Natural Language Processing (NLP):** NLTK (Stopwords, Lemmatization)  
+    - **NLP:** NLTK (Stopwords, Lemmatization)  
     - **Feature Engineering:** TF-IDF (Scikit-learn)  
-    - **Machine Learning Model:** Logistic Regression (Scikit-learn)  
-    - **Model Serialization:** Joblib  
-    - **Web App Framework:** Streamlit  
+    - **Model:** Logistic Regression (Scikit-learn)  
+    - **Serialization:** Joblib  
+    - **Web App:** Streamlit  
     - **Visualization:** WordCloud, Matplotlib  
-    - **Version Control / Deployment:** Git, Streamlit Community Cloud
+    - **Deployment:** Git, Streamlit Community Cloud
     """)
 
 # -------------------- Sidebar: Dataset Info --------------------
@@ -77,7 +102,7 @@ with st.sidebar.expander("📈 Model Performance"):
     **Insights:**  
     - Model performs well across all four categories.  
     - TF-IDF + Logistic Regression gives strong baseline results.  
-    - Can be enhanced using XGBoost or a simple Neural Network.
+    - Can be enhanced using XGBoost or Neural Networks.
     """)
 
 # -------------------- Main App --------------------
@@ -88,6 +113,15 @@ st.write("**Rayyan Ahmed | Elevvo**")
 st.markdown("""
 ### 🏷️ Available Categories:
 1️⃣ **World** 🌍 2️⃣ **Sports** 🏅 3️⃣ **Business** 💼 4️⃣ **Science & Technology** 💻
+""")
+
+# Example inputs for easy testing
+st.info("""
+**🧠 Try These Headlines:**
+- *Poland and Ukraine hold talks to establish stronger relations* → 🌍 **World**  
+- *Lionel Messi leads Argentina to victory in World Cup qualifier* → 🏅 **Sports**  
+- *Apple’s quarterly profits exceed Wall Street expectations* → 💼 **Business**  
+- *NASA develops new AI system for satellite communication* → 💻 **Science & Tech**
 """)
 
 # -------------------- Prediction + History --------------------
@@ -114,7 +148,7 @@ if st.button("🔍 Predict Category"):
 
     st.success(f"✅ **Predicted Category:** {category_names[prediction]}")
 
-    # Store result in history
+    # Save in session history
     st.session_state.prediction_history = pd.concat([
         st.session_state.prediction_history,
         pd.DataFrame({"Input Text": [user_input], "Predicted Category": [category_names[prediction]]})
@@ -135,38 +169,17 @@ if not st.session_state.prediction_history.empty:
     )
 
 # -------------------- WordCloud Visualization --------------------
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-
 st.markdown("---")
 st.subheader("🌈 WordCloud Visualization by Category")
 
 category_labels = {1: 'World 🌍', 2: 'Sports 🏅', 3: 'Business 💼', 4: 'Science & Tech 💻'}
+st.info("⚠️ For Streamlit Cloud, ensure dataset is uploaded before generating WordClouds.")
 
 selected_category = st.selectbox(
-    "Select a category to visualize the most frequent words:",
+    "Select a category to visualize most frequent words:",
     options=list(category_labels.keys()),
     format_func=lambda x: category_labels[x]
 )
 
-if st.button("☁️ Generate WordCloud"):
-    st.info(f"Generating WordCloud for **{category_labels[selected_category]}** ...")
-
-    text_data = " ".join(df[df['Class Index'] == selected_category]['Description'].astype(str))
-
-    wordcloud = WordCloud(
-        width=800,
-        height=400,
-        background_color='white',
-        max_words=100,
-        colormap='viridis'
-    ).generate(text_data)
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.imshow(wordcloud, interpolation='bilinear')
-    ax.axis("off")
-    plt.tight_layout()
-    st.pyplot(fig)
-
-    st.success(f"✅ WordCloud generated for {category_labels[selected_category]}")
+st.warning("Upload your dataset CSV to enable WordCloud generation below.")
 
