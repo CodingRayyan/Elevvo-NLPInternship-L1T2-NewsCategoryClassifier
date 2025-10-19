@@ -169,11 +169,18 @@ if not st.session_state.prediction_history.empty:
     )
 
 # -------------------- WordCloud Visualization --------------------
+# -------------------- WordCloud Visualization --------------------
 st.markdown("---")
 st.subheader("🌈 WordCloud Visualization by Category")
 
+# Try using test.csv if train.csv is not available
+try:
+    df = pd.read_csv('test.csv')
+    st.info("Using test.csv for WordCloud visualization.")
+except:
+    st.error("⚠️ Could not find dataset file. Please upload one.")
+
 category_labels = {1: 'World 🌍', 2: 'Sports 🏅', 3: 'Business 💼', 4: 'Science & Tech 💻'}
-st.info("⚠️ For Streamlit Cloud, ensure dataset is uploaded before generating WordClouds.")
 
 selected_category = st.selectbox(
     "Select a category to visualize most frequent words:",
@@ -181,5 +188,27 @@ selected_category = st.selectbox(
     format_func=lambda x: category_labels[x]
 )
 
-st.warning("Upload your dataset CSV to enable WordCloud generation below.")
+if 'df' in locals():
+    if st.button("☁️ Generate WordCloud"):
+        st.info(f"Generating WordCloud for **{category_labels[selected_category]}** ...")
+
+        text_data = " ".join(df[df['Class Index'] == selected_category]['Description'].astype(str))
+
+        wordcloud = WordCloud(
+            width=800,
+            height=400,
+            background_color='white',
+            max_words=100,
+            colormap='viridis'
+        ).generate(text_data)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.imshow(wordcloud, interpolation='bilinear')
+        ax.axis("off")
+        plt.tight_layout()
+        st.pyplot(fig)
+
+        st.success(f"✅ WordCloud generated for {category_labels[selected_category]}")
+
+
 
